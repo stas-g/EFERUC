@@ -318,38 +318,6 @@ build_rf_regressor <- function(x, y){
   )
 }
 
-build_svm_regressor <- function(x, y){
-  #registerDoMC(cores = detectCores()) # Enable parallelism
-  registerDoMC(cores = 20) # Enable parallelism
-  ctrl <- trainControl(
-    method = "LGOCV", 
-    p = 0.7,
-    number = 1,
-    allowParallel = TRUE
-  )
-
-  grid <- expand.grid(
-    C = c(0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10, 100)
-  )
-
-  set.seed(74562)
-  #suppressWarnings(
-  svm_fit <- train(
-    x = x, 
-    y = y,
-    scaled = FALSE,
-    epsilon = 0.01,
-    method = "svmLinear",
-    eval_metric = "rmse",
-    tuneGrid = grid,
-    trControl = ctrl
-  )
-  #)
-  registerDoSEQ() # Disable parallelism
-
-  svm_fit
-}
-
 build_xgb_regressor <- function(x, y){
   ctrl <- trainControl(
     method = "LGOCV", 

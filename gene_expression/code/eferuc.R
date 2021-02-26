@@ -6,8 +6,7 @@ source("lib_experiment_parameters.R")
 
 regressor_functions  <- list("LS"  = build_lasso_regressor,
                              "RR"  = build_ridge_regressor,
-                             "RF"  = build_rf_regressor, 
-                             "SVM" = build_svm_regressor,
+                             "RF"  = build_rf_regressor,
                              "XGB" = build_xgb_regressor)
 classifier_functions <- list("RF"  = build_rf_classifier,
                              "NB"  = build_nb_classifier,
@@ -28,7 +27,6 @@ unsupervised_discretization <- function(y, bin_size, type){
       return(NA)
     }
     if (length(unique(ybin)) < 2) {
-      #message(" This is different!")
       return(NA) 
     }
   }
@@ -83,7 +81,6 @@ build_regressors <- function(x, ybinned, bin_size, regressor){
   learner <- regressor_functions[[regressor]]
   models  <- vector(mode = "list", length = bin_size)
   for (i in 1:bin_size){
-    #message(paste0("          BS: ", i))
     y <- ybinned[[i]]
     x_train <- x[names(y), ]
     models[[i]] <- learner(x_train, y)
@@ -114,25 +111,19 @@ upsample_dataset <- function(x, ybinned){
 build_models <- function(x, layered_ybins, max_bins, crpair){
   crpair_models <- vector(mode = "list", length = max_bins)
   for (bin_size in 1:max_bins){
-    #message(paste0("       Modelling bin size: ", bin_size))
     ybinned <- layered_ybins[[bin_size]]
     if (bin_size == 1){ # For base model.
       # Build only base regressor as there is nothing to classify.
       # regressors should have exactly one model.
-      #message("        A")
       regressors <- build_regressors(x, ybinned, bin_size, crpair$regressor)
-      #message("        B")
       crpair_models[[bin_size]]$regressor <- regressors[[1]]
 
     } else {
       # Upsample training set. Then build single classifier.
       udf <- upsample_dataset(x, ybinned)
-      #message("        C")
       classifier <- build_classifier(udf$x, udf$y, crpair$classifier)
       # Build regressors for each bin.
-      #message("        A")
       regressors <- build_regressors(x, ybinned, bin_size, crpair$regressor)
-      #message("        B")
     
       crpair_models[[bin_size]]$classifier <- classifier
       crpair_models[[bin_size]]$regressors <- regressors
@@ -153,7 +144,7 @@ get_regression_predictions <- function(model, regressor, x_new){
   } else { # For caret based models.
     # Note that models created using caret might either return a vector
     # or a matrix when model$finalModel is used, as is the case with
-    # XGBoost and SVMs. However, if the direct model is used, as in 
+    # XGBoost. However, if the direct model is used, as in 
     # "model" in the predict function, this simply returns a vector,
     # which is what we want.
     predict(model, x_new)
@@ -243,7 +234,6 @@ learn_bin_size_weights <- function(x_learning,
     y_val   <- y_learning[validation_idx]
  
     layered_ytrain_bins <- get_layered_bins(y_train, discretizer, max_bins) 
-    #message("      Generated layered bins")
 
     # Model building might fail because there are too few samples for a 
     # given bin size.
@@ -290,8 +280,6 @@ learn_bin_size_weights <- function(x_learning,
   )
   if (is.na(crpair_weights[1])){
     crpair_weights <- round(sconvex_lr(x_crpair, y_crpair), 2)
-    # message("       Convex linear regression failed.")
-    # return(NA) 
   }
 
   # Get individual best performing bin size.
@@ -475,7 +463,7 @@ perform_feruc <- function(dataset_name, discretizer){
     message(paste0("  \nLearning Max Bins: ", max_bins))  
     for (crpair_index in 1:nrow(CRPAIRS)) {
       crpair <- CRPAIRS[crpair_index, ]
-       # Log the specified MAX BINS and the actual discretizer max bins
+      # Log the specified MAX BINS and the actual discretizer max bins
       bin_note <- paste0(crpair$classifier, "-", crpair$regressor, 
                          "\t", discretizer, "\t", response, "\t", MAX_BINS, 
                          " - ", max_bins)

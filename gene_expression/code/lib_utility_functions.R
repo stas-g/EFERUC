@@ -2,11 +2,9 @@ library(caret)
 library(e1071)
 library(doMC)
 library(glmnet)
+library(ranger)
 library(rpart)
 library(quadprog)
-
-lib <- "~/R/x86_64-pc-linux-gnu-library/3.6/"
-library(ranger, lib.loc = lib)
 
 options(warn = 1)
 
@@ -112,7 +110,7 @@ read_experiment_data <- function(dataset){
                              row.names = 1)
                  )
                  
-   # Sanity check
+  # Sanity check
   confirm_non_intersecting_indices(
     rownames(x_learning), 
     rownames(x_test),
@@ -321,38 +319,6 @@ build_rf_regressor <- function(x, y){
     mtry = floor(ncol(x)/3), 
     verbose = FALSE
   )
-}
-
-build_svm_regressor <- function(x, y){
-  #registerDoMC(cores = detectCores()) # Enable parallelism
-  registerDoMC(cores = 20) # Enable parallelism
-  ctrl <- trainControl(
-    method = "LGOCV", 
-    p = 0.7,
-    number = 1,
-    allowParallel = TRUE
-  )
-
-  grid <- expand.grid(
-    C = c(0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10, 100)
-  )
-
-  set.seed(74562)
-  #suppressWarnings(
-  svm_fit <- train(
-    x = x, 
-    y = y,
-    scaled = FALSE,
-    epsilon = 0.01,
-    method = "svmLinear",
-    eval_metric = "rmse",
-    tuneGrid = grid,
-    trControl = ctrl
-  )
-  #)
-  registerDoSEQ() # Disable parallelism
-
-  svm_fit
 }
 
 build_xgb_regressor <- function(x, y){
