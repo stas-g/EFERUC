@@ -23,9 +23,15 @@ unsupervised_discretization <- function(y, bin_size, type){
   ybins <- split(y, idx)
   names(ybins) <- 0:(length(ybins)-1)
   for (ybin in ybins){
+    # We don't want to have sub bins with less than 50 samples.
+    # This is because anything less breaks some learning algorithms,
+    # especially with higher dimentional problems. It also affects
+    # the internal cross validation. Affects mostly the clustering
+    # approach.
     if (length(ybin) < 50){
       return(NA)
     }
+    # We don't want to have bins with only only one unique value.
     if (length(unique(ybin)) < 2) {
       return(NA) 
     }
