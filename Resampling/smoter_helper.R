@@ -170,8 +170,7 @@ xtn <- function(x) {
 
 
 #calculate mse (rsq = FALSE) or r-squared (rsq = TRUE) for a vector (matrix, columnwise) of observed values and a vector (matrix, columnwise) of predicted values
-calc.mse
-function (obs, pred, rsq = FALSE)
+calc.mse <- function (obs, pred, rsq = FALSE)
 {
     if (is.vector(obs))
         obs <- as.matrix(obs)
